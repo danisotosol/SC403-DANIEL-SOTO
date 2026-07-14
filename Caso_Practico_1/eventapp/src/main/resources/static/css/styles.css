@@ -1,0 +1,11 @@
+/* Estilos opcionales para EventApp.
+   Caso Practico 1 - SC-403 */
+
+body {
+    background-color: #f8f9fa;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    transition: transform 0.15s ease-in-out;
+}

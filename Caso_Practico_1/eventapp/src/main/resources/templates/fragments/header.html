@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <div class="container">
+        <a class="navbar-brand fw-bold" th:href="@{/}">
+            <i class="bi bi-calendar-event me-2"></i>EventApp
+        </a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/}">Inicio</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/eventos}">Eventos</a>
+                </li>
+            </ul>
+            <span class="navbar-text text-white-50 small">
+                SC-403 - Caso Practico 1
+            </span>
+        </div>
+    </div>
+</nav>
+
+<footer th:fragment="footer" class="text-center text-muted py-4 mt-5 border-top">
+    <small>EventApp - Caso Practico 1 - SC-403</small>
+</footer>
+
+</body>
+</html>
