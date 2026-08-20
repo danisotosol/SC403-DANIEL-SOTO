@@ -2,6 +2,8 @@ package com.ufide.biblioapp.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -9,7 +11,10 @@ import jakarta.persistence.Table;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
+import com.ufide.biblioapp.security.Rol;
 
 @Entity
 @Table(name = "usuarios")
@@ -30,12 +35,19 @@ public class Usuario {
     @Column(nullable = false)
     private String password;
 
-    // Rol como String ("BIBLIOTECARIO" o "LECTOR"), igual que el proyecto
-    // base del curso. El enum Rol es la lista de valores permitidos y
-    // UsuarioService.validarRol() la hace cumplir.
-    @NotBlank(message = "El rol es obligatorio")
+    // El rol es el enum Rol, no un String. @Enumerated(EnumType.STRING)
+    // guarda el NOMBRE ("BIBLIOTECARIO", "LECTOR") en la columna, no el
+    // ordinal: con ORDINAL, agregar o reordenar un valor del enum cambiaria
+    // el significado de las filas que ya estan en la base.
+    //
+    // Al tipar el campo con el enum, un rol invalido no compila y tampoco
+    // puede entrar por JPA: la unica frontera que queda por validar es lo
+    // que llega de afuera (formulario o JSON), y de eso se ocupa
+    // UsuarioService.rolDesdeTexto().
+    @NotNull(message = "El rol es obligatorio")
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String rol;
+    private Rol rol;
 
     @NotBlank(message = "El nombre completo es obligatorio")
     @Size(max = 100)
@@ -48,7 +60,7 @@ public class Usuario {
     public Usuario() {
     }
 
-    public Usuario(Long id, String username, String password, String rol,
+    public Usuario(Long id, String username, String password, Rol rol,
                    String nombreCompleto, String email) {
         this.id = id;
         this.username = username;
@@ -67,8 +79,8 @@ public class Usuario {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
-    public String getRol() { return rol; }
-    public void setRol(String rol) { this.rol = rol; }
+    public Rol getRol() { return rol; }
+    public void setRol(Rol rol) { this.rol = rol; }
 
     public String getNombreCompleto() { return nombreCompleto; }
     public void setNombreCompleto(String nombreCompleto) { this.nombreCompleto = nombreCompleto; }

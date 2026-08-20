@@ -37,21 +37,25 @@ public class UsuarioService {
         return Arrays.asList(Rol.values());
     }
 
-    // Un rol que no este en el enum no entra a la base: si alguien manda
-    // "ADMIN" desde un POST hecho a mano, se rechaza aca.
-    public boolean rolValido(String rol) {
+    // El campo de la entidad ya es del tipo Rol, asi que un valor invalido no
+    // puede llegar por Java. Esto valida lo que entra de AFUERA como texto
+    // (un select de formulario, un POST JSON hecho a mano): devuelve el enum
+    // correspondiente o vacio si ese rol no existe.
+    public Optional<Rol> rolDesdeTexto(String rol) {
         if (rol == null) {
-            return false;
+            return Optional.empty();
         }
-        return Arrays.stream(Rol.values()).anyMatch(r -> r.name().equals(rol));
+        return Arrays.stream(Rol.values())
+                .filter(r -> r.name().equalsIgnoreCase(rol.trim()))
+                .findFirst();
     }
 
     // Hashea el password solo si viene en texto plano (creacion, o cambio
     // explicito). Si el formulario de edicion lo manda vacio, se conserva el
     // hash que ya estaba guardado.
     public Usuario guardar(Usuario usuario) {
-        if (!rolValido(usuario.getRol())) {
-            throw new IllegalArgumentException("Rol invalido: " + usuario.getRol());
+        if (usuario.getRol() == null) {
+            throw new IllegalArgumentException("El rol es obligatorio");
         }
         if (usuario.getPassword() == null || usuario.getPassword().isBlank()) {
             Usuario actual = repo.findById(usuario.getId()).orElseThrow();
