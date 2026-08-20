@@ -7,7 +7,7 @@ Sistema de préstamo de libros con roles, API REST y detección de préstamos at
 - **Entidad `Prestamo`** asociada a `Libro` y `Usuario` con `@ManyToOne` (Semana 9).
 - **Roles `BIBLIOTECARIO` / `LECTOR`** con `@PreAuthorize` y página `/403` (Semanas 10–11).
 - **API REST** de libros y préstamos, autenticada con JWT (Semana 12).
-- **Consulta JPQL propia** de préstamos atrasados (`PrestamoRepository.findAtrasados`).
+- **Consulta JPQL propia** de préstamos atrasados (`PrestamoRepository.prestamosAtrasados`).
 
 ## Requisitos
 
@@ -21,8 +21,9 @@ Sistema de préstamo de libros con roles, API REST y detección de préstamos at
 # 1. Crear la base
 mysql -u root -e "CREATE DATABASE IF NOT EXISTS biblioappdb CHARACTER SET utf8mb4;"
 
-# 2. Contraseña de la base (si la instancia la pide)
-export DB_PASSWORD=tu_password
+# 2. Variables de entorno: la clave JWT es obligatoria y no está en el repo
+export JWT_SECRET="una-clave-de-al-menos-32-caracteres-propia"
+export DB_PASSWORD=tu_password   # solo si la instancia la pide
 
 # 3. Arrancar (puerto 8082)
 ./mvnw spring-boot:run
@@ -91,3 +92,5 @@ después la carpeta **4. Pruebas de autorización**.
   falla con `Cannot map null into type int`.
 - Dos `SecurityFilterChain`: `/api/**` responde 401/403; las vistas redirigen a
   `/login` y `/403`.
+- `app.jwt.secret` no tiene valor por defecto: si falta `JWT_SECRET`, la app no arranca.
+  Así la clave no queda versionada en el repo.
