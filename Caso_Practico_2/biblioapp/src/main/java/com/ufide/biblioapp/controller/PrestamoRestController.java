@@ -38,7 +38,7 @@ public class PrestamoRestController {
     }
 
     // GET /api/prestamos/atrasados -> ENDPOINT PEDIDO POR EL CASO 2.
-    // Detras corre la JPQL propia de PrestamoRepository.findAtrasados(:hoy):
+    // Detras corre la JPQL propia PrestamoRepository.prestamosAtrasados(:hoy):
     // fechaDevolucionReal IS NULL AND fechaDevolucionEsperada < hoy.
     @PreAuthorize("hasRole('BIBLIOTECARIO')")
     @GetMapping("/atrasados")

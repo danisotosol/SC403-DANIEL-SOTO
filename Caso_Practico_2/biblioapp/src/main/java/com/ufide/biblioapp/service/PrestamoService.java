@@ -43,9 +43,9 @@ public class PrestamoService {
     }
 
     // Los atrasados se calculan SIEMPRE contra la fecha de hoy, y el filtro
-    // corre en la base de datos via JPQL (ver PrestamoRepository.findAtrasados).
+    // corre en la base de datos via JPQL (ver PrestamoRepository.prestamosAtrasados).
     public List<Prestamo> listarAtrasados() {
-        return repo.findAtrasados(LocalDate.now());
+        return repo.prestamosAtrasados(LocalDate.now());
     }
 
     public long contarAtrasados() {

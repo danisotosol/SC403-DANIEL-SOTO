@@ -29,9 +29,14 @@ sume ejemplares de la nada.
 
 ## Roles y 403
 
-Los dos roles viven en el enum `Rol`, y `UsuarioService.rolValido()` rechaza cualquier otro
-valor antes de llegar a la base. Dentro de `@PreAuthorize` el rol sigue siendo un String
-(SpEL es texto), asi que el enum no me salva de un typo ahi, si en el resto del codigo.
+Los dos roles viven en el enum `Rol`, y el campo `Usuario.rol` es de ese tipo, no un
+String: con `@Enumerated(EnumType.STRING)` se guarda el nombre ("BIBLIOTECARIO") en la
+columna y no el ordinal, porque con ORDINAL agregar o reordenar un valor del enum le
+cambia el significado a las filas que ya estan en la base. Tipado asi, un rol invalido no
+compila ni puede entrar por JPA; lo unico que queda por validar es el texto que llega de
+afuera (un select, un POST JSON), y de eso se ocupa `UsuarioService.rolDesdeTexto()`.
+Dentro de `@PreAuthorize` el rol sigue siendo un String porque SpEL es texto: ahi el enum
+no me salva de un typo, si en el resto del codigo.
 
 Criterio: leer es de todos, gestionar es del bibliotecario.
 
@@ -84,7 +89,7 @@ excepcion y el controller las traduce a 409, no a un 500.
          AND p.fechaDevolucionEsperada < :hoy
        ORDER BY p.fechaDevolucionEsperada ASC
        """)
-List<Prestamo> findAtrasados(@Param("hoy") LocalDate hoy);
+List<Prestamo> prestamosAtrasados(@Param("hoy") LocalDate hoy);
 ```
 
 Dos condiciones y ninguna sobra:

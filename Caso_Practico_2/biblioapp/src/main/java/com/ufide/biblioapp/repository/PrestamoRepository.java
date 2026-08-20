@@ -42,11 +42,11 @@ public interface PrestamoRepository extends JpaRepository<Prestamo, Long> {
              AND p.fechaDevolucionEsperada < :hoy
            ORDER BY p.fechaDevolucionEsperada ASC
            """)
-    List<Prestamo> findAtrasados(@Param("hoy") LocalDate hoy);
+    List<Prestamo> prestamosAtrasados(@Param("hoy") LocalDate hoy);
 
-    // Variante de conteo, para el badge del navbar y el resumen del home.
-    // Mismas dos condiciones que arriba, sin JOIN FETCH (COUNT no necesita
-    // materializar las entidades relacionadas).
+    // Variante de conteo de la misma consulta, para el badge del listado y el
+    // resumen de la API. Mismas dos condiciones, sin JOIN FETCH: un COUNT no
+    // necesita materializar las entidades relacionadas.
     @Query("""
            SELECT COUNT(p) FROM Prestamo p
            WHERE p.fechaDevolucionReal IS NULL

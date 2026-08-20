@@ -74,7 +74,7 @@ public class Prestamo {
     // ===== Estado derivado =====
     // @Transient: se calcula en memoria, NO es una columna. Sirve para las
     // vistas y para el JSON de la API, pero la deteccion de atrasados de
-    // verdad se hace en JPQL (PrestamoRepository.findAtrasados) para no
+    // verdad se hace en JPQL (PrestamoRepository.prestamosAtrasados) para no
     // traer toda la tabla a Java y filtrarla aca.
 
     @Transient
