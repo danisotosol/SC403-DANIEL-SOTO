@@ -1,0 +1,915 @@
+{
+  "info": {
+    "name": "SC-403 - Caso Practico 2 - BiblioApp",
+    "_postman_id": "sc403-caso2-biblioapp",
+    "description": "Coleccion para probar la API REST de BiblioApp (Caso Practico 2).\n\nORDEN DE USO:\n1. 'Login BIBLIOTECARIO' -> guarda el JWT en la variable {{token}} automaticamente.\n2. Cualquier otro request usa ese token en el header Authorization.\n3. Para probar el 403, correr 'Login LECTOR' y despues los requests de la carpeta 'Pruebas de autorizacion'.\n\nVariables: base_url (http://localhost:8082) y token (se llena sola en el login).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8082",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Autenticacion (JWT)",
+      "description": "POST /api/auth/login devuelve un JWT firmado con HS256, valido 1 hora.",
+      "item": [
+        {
+          "name": "Login BIBLIOTECARIO (biblio/biblio123)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Credenciales del bibliotecario. El test script guarda el token en {{token}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"biblio\",\n  \"password\": \"biblio123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Guarda el token en la variable de coleccion {{token}}",
+                  "const data = pm.response.json();",
+                  "pm.collectionVariables.set('token', data.token);",
+                  "pm.test('200 y token presente', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(data.token).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login LECTOR (lector/lector123)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Credenciales de un lector. Sirve para demostrar el 403 en los endpoints de escritura.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"lector\",\n  \"password\": \"lector123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Guarda el token en la variable de coleccion {{token}}",
+                  "const data = pm.response.json();",
+                  "pm.collectionVariables.set('token', data.token);",
+                  "pm.test('200 y token presente', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(data.token).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login con password incorrecto (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Credenciales invalidas: Spring Security responde 401 sin emitir token.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"biblio\",\n  \"password\": \"incorrecto\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Libros (API REST)",
+      "description": "CRUD del catalogo. GET para cualquier autenticado; POST/PUT/DELETE solo BIBLIOTECARIO.",
+      "item": [
+        {
+          "name": "GET todos los libros",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/libros",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "libros"
+              ]
+            },
+            "description": "Catalogo completo en JSON."
+          },
+          "response": []
+        },
+        {
+          "name": "GET libros por categoria",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/libros?categoria=Programacion",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "libros"
+              ],
+              "query": [
+                {
+                  "key": "categoria",
+                  "value": "Programacion"
+                }
+              ]
+            },
+            "description": "Filtro por categoria exacta (ignora mayusculas)."
+          },
+          "response": []
+        },
+        {
+          "name": "GET solo disponibles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/libros?disponibles=true",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "libros"
+              ],
+              "query": [
+                {
+                  "key": "disponibles",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Solo los libros con ejemplaresDisponibles > 0."
+          },
+          "response": []
+        },
+        {
+          "name": "GET libro por id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/libros/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "libros",
+                "1"
+              ]
+            },
+            "description": "200 con el libro, 404 si el id no existe."
+          },
+          "response": []
+        },
+        {
+          "name": "GET libro inexistente (404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/libros/9999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "libros",
+                "9999"
+              ]
+            },
+            "description": "Demuestra el manejo de 404 con ResponseEntity.notFound()."
+          },
+          "response": []
+        },
+        {
+          "name": "POST crear libro (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/libros",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "libros"
+              ]
+            },
+            "description": "Requiere rol BIBLIOTECARIO. Devuelve 201 + header Location.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Effective Java\",\n  \"autor\": \"Joshua Bloch\",\n  \"isbn\": \"978-0134685991\",\n  \"categoria\": \"Programacion\",\n  \"anioPublicacion\": 2018,\n  \"ejemplaresTotales\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST libro invalido (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/libros",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "libros"
+              ]
+            },
+            "description": "Titulo vacio y anio fuera de rango: Bean Validation responde 400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"\",\n  \"autor\": \"X\",\n  \"isbn\": \"123\",\n  \"categoria\": \"Test\",\n  \"anioPublicacion\": 900,\n  \"ejemplaresTotales\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT actualizar libro",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/libros/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "libros",
+                "1"
+              ]
+            },
+            "description": "Requiere BIBLIOTECARIO. 200 con el libro actualizado, 404 si no existe.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Clean Code (2da edicion)\",\n  \"autor\": \"Robert C. Martin\",\n  \"isbn\": \"978-0132350884\",\n  \"categoria\": \"Programacion\",\n  \"anioPublicacion\": 2008,\n  \"ejemplaresTotales\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE libro (204)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/libros/11",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "libros",
+                "11"
+              ]
+            },
+            "description": "Requiere BIBLIOTECARIO. 204 si borro, 404 si no existia. Ojo: si el libro tiene prestamos, la FK lo impide."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Prestamos y atrasados",
+      "description": "Endpoints de prestamos. /atrasados es el requisito central del Caso 2.",
+      "item": [
+        {
+          "name": "GET todos los prestamos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/prestamos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "prestamos"
+              ]
+            },
+            "description": "Solo BIBLIOTECARIO. Devuelve PrestamoDTO (sin exponer el hash del password)."
+          },
+          "response": []
+        },
+        {
+          "name": "GET PRESTAMOS ATRASADOS",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/prestamos/atrasados",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "prestamos",
+                "atrasados"
+              ]
+            },
+            "description": "Endpoint clave del caso. Detras corre la JPQL propia: fechaDevolucionReal IS NULL AND fechaDevolucionEsperada < :hoy, con JOIN FETCH de libro y usuario para evitar N+1. Con el seed cargado devuelve 2 filas."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const data = pm.response.json();",
+                  "pm.test('200 y lista de atrasados', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(data).to.be.an('array');",
+                  "});",
+                  "pm.test('todos tienen diasAtraso > 0 y sin fecha real', function () {",
+                  "  data.forEach(p => {",
+                  "    pm.expect(p.fechaDevolucionReal).to.be.null;",
+                  "    pm.expect(p.diasAtraso).to.be.above(0);",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET resumen de atrasados",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/prestamos/atrasados/resumen",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "prestamos",
+                "atrasados",
+                "resumen"
+              ]
+            },
+            "description": "Conteo con COUNT en la base (mismas dos condiciones), para dashboards."
+          },
+          "response": []
+        },
+        {
+          "name": "GET prestamo por id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/prestamos/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "prestamos",
+                "1"
+              ]
+            },
+            "description": "200 con el prestamo, 404 si no existe."
+          },
+          "response": []
+        },
+        {
+          "name": "GET mis prestamos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/prestamos/mios",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "prestamos",
+                "mios"
+              ]
+            },
+            "description": "Los prestamos del usuario dueno del token. El username sale del Principal, no de un parametro, asi nadie ve los de otro."
+          },
+          "response": []
+        },
+        {
+          "name": "POST registrar prestamo (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/prestamos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "prestamos"
+              ]
+            },
+            "description": "Body con ids. Si se omiten las fechas, el service pone hoy y hoy+14 dias. Descuenta un ejemplar dentro de una transaccion.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"libroId\": 3,\n  \"usuarioId\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST prestamo duplicado (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/prestamos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "prestamos"
+              ]
+            },
+            "description": "Mismo usuario y mismo libro con un prestamo activo: el service lanza la excepcion de negocio y el controller responde 409 Conflict.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"libroId\": 3,\n  \"usuarioId\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST prestamo sin ejemplares (409, correr 2 veces)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/prestamos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "prestamos"
+              ]
+            },
+            "description": "Domain-Driven Design (libroId 5) tiene UN solo ejemplar. La primera corrida devuelve 201 y deja ejemplaresDisponibles en 0; la segunda, cambiando usuarioId a 2, devuelve 409 con el motivo. Asi se demuestra la regla de inventario.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"libroId\": 5,\n  \"usuarioId\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST registrar devolucion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/prestamos/1/devolver",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "prestamos",
+                "1",
+                "devolver"
+              ]
+            },
+            "description": "Cierra el prestamo (pone fechaDevolucionReal = hoy) y devuelve el ejemplar al inventario. Repetirlo da 409: es idempotente por diseno."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Pruebas de autorizacion (roles)",
+      "description": "Para estos requests, correr primero 'Login LECTOR'. Todos deben responder 403 Forbidden: el @PreAuthorize del controller bloquea al LECTOR igual que en las vistas HTML.",
+      "item": [
+        {
+          "name": "LECTOR crea libro -> 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/libros",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "libros"
+              ]
+            },
+            "description": "Con token de LECTOR: 403. @PreAuthorize(\"hasRole('BIBLIOTECARIO')\").",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Libro no permitido\",\n  \"autor\": \"X\",\n  \"isbn\": \"999-999\",\n  \"categoria\": \"Test\",\n  \"anioPublicacion\": 2020,\n  \"ejemplaresTotales\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('403 Forbidden', function () { pm.response.to.have.status(403); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LECTOR borra libro -> 403",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/libros/2",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "libros",
+                "2"
+              ]
+            },
+            "description": "Con token de LECTOR: 403."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('403 Forbidden', function () { pm.response.to.have.status(403); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LECTOR ve atrasados -> 403",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/prestamos/atrasados",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "prestamos",
+                "atrasados"
+              ]
+            },
+            "description": "Los atrasados son informacion de gestion: solo BIBLIOTECARIO."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('403 Forbidden', function () { pm.response.to.have.status(403); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sin token -> 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/libros",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "libros"
+              ]
+            },
+            "description": "Sin header Authorization, /api/** exige autenticacion."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 Unauthorized', function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Roles disponibles",
+      "item": [
+        {
+          "name": "GET /api/roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/roles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "roles"
+              ]
+            },
+            "description": "Expone el enum Rol: [\"BIBLIOTECARIO\",\"LECTOR\"]."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

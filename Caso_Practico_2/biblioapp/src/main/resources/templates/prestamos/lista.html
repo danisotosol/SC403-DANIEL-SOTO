@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prestamos | BiblioApp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: navbar}"></div>
+
+<main class="container my-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h1 class="mb-1">Prestamos</h1>
+            <p class="text-muted mb-0">
+                Total: <span class="badge bg-primary" th:text="${prestamos.size()}">0</span>
+                Atrasados: <span class="badge bg-danger" th:text="${totalAtrasados}">0</span>
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-primary" th:href="@{/prestamos/nuevo}">
+                <i class="bi bi-journal-plus me-1"></i> Nuevo prestamo
+            </a>
+            <a class="btn btn-outline-danger" th:href="@{/prestamos/atrasados}">
+                <i class="bi bi-alarm me-1"></i> Ver atrasados
+            </a>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/header :: alertas}"></div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Libro</th>
+                    <th>Lector</th>
+                    <th>Prestado</th>
+                    <th>Vence</th>
+                    <th>Estado</th>
+                    <th class="text-end">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="p : ${prestamos}">
+                    <td th:text="${p.id}">1</td>
+                    <td>
+                        <a th:href="@{/libros/{id}(id=${p.libro.id})}" th:text="${p.libro.titulo}">Titulo</a>
+                        <div class="text-muted small" th:text="${p.libro.autor}">Autor</div>
+                    </td>
+                    <td>
+                        <span th:text="${p.usuario.nombreCompleto}">Nombre</span>
+                        <div class="text-muted small" th:text="'@' + ${p.usuario.username}">@user</div>
+                    </td>
+                    <td th:text="${#temporals.format(p.fechaPrestamo, 'dd/MM/yyyy')}">01/01/2026</td>
+                    <td th:text="${#temporals.format(p.fechaDevolucionEsperada, 'dd/MM/yyyy')}">01/01/2026</td>
+                    <td>
+                        <!-- devuelto / atrasado son los helpers @Transient de la entidad -->
+                        <span class="badge bg-success" th:if="${p.devuelto}">
+                            Devuelto el <span th:text="${#temporals.format(p.fechaDevolucionReal, 'dd/MM/yyyy')}">fecha</span>
+                        </span>
+                        <span class="badge bg-danger" th:if="${p.atrasado}"
+                              th:text="'Atrasado ' + ${p.diasAtraso} + ' dias'">Atrasado</span>
+                        <span class="badge bg-secondary" th:if="${!p.devuelto and !p.atrasado}">En plazo</span>
+                    </td>
+                    <td class="text-end">
+                        <form th:action="@{/prestamos/{id}/devolver(id=${p.id})}" method="post" class="d-inline"
+                              th:if="${!p.devuelto}">
+                            <button class="btn btn-sm btn-outline-success" type="submit">
+                                <i class="bi bi-arrow-return-left me-1"></i>Devolver
+                            </button>
+                        </form>
+                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                data-bs-toggle="modal" data-bs-target="#modalEliminar"
+                                th:data-id="${p.id}" th:data-titulo="${p.libro.titulo}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="alert alert-warning" th:if="${prestamos.isEmpty()}">
+        <i class="bi bi-exclamation-triangle me-2"></i> Todavia no hay prestamos registrados.
+    </div>
+</main>
+
+<footer th:replace="~{fragments/header :: footer}"></footer>
+
+<div class="modal fade" id="modalEliminar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Eliminar prestamo</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Eliminar el prestamo de <strong id="tituloPrestamo">...</strong>?</p>
+                <p class="text-muted small mb-0">Si estaba activo, el ejemplar vuelve al inventario.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="formEliminar" method="post" th:action="@{/prestamos/0/eliminar}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i> Si, eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('modalEliminar');
+    if (!modal) return;
+    modal.addEventListener('show.bs.modal', (event) => {
+      const boton = event.relatedTarget;
+      document.getElementById('tituloPrestamo').textContent = boton.getAttribute('data-titulo');
+      document.getElementById('formEliminar').action = '/prestamos/' + boton.getAttribute('data-id') + '/eliminar';
+    });
+  });
+</script>
+</body>
+</html>

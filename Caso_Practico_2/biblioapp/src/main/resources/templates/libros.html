@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalogo | BiblioApp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: navbar}"></div>
+
+<main class="container my-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h1 class="mb-1">Catalogo</h1>
+            <p class="text-muted mb-0">
+                Total: <span class="badge bg-primary" th:text="${libros.size()}">0</span>
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <!-- Cosmetico: la proteccion real es @PreAuthorize en LibroController -->
+            <a class="btn btn-primary" th:href="@{/libros/nuevo}" sec:authorize="hasRole('BIBLIOTECARIO')">
+                <i class="bi bi-plus-circle me-1"></i> Nuevo libro
+            </a>
+            <a class="btn btn-outline-primary" th:href="@{/prestamos/nuevo}" sec:authorize="hasRole('BIBLIOTECARIO')">
+                <i class="bi bi-journal-plus me-1"></i> Nuevo prestamo
+            </a>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/header :: alertas}"></div>
+
+    <!-- Filtro por categoria: los botones se generan desde la BD, no quemados -->
+    <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+        <a class="btn btn-sm" th:href="@{/libros}"
+           th:classappend="${categoriaActiva == null} ? 'btn-primary' : 'btn-outline-primary'">Todas</a>
+        <a th:each="c : ${categorias}" class="btn btn-sm"
+           th:href="@{/libros(categoria=${c})}"
+           th:classappend="${categoriaActiva != null and categoriaActiva == c} ? 'btn-primary' : 'btn-outline-primary'"
+           th:text="${c}">Categoria</a>
+
+        <form class="d-flex ms-auto" method="get" th:action="@{/libros}">
+            <input class="form-control form-control-sm me-2" type="search" name="q"
+                   th:value="${q}" placeholder="Titulo o autor">
+            <button class="btn btn-sm btn-outline-secondary" type="submit">
+                <i class="bi bi-search"></i>
+            </button>
+        </form>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12 col-md-6 col-lg-4" th:each="l : ${libros}">
+            <div class="card h-100 shadow-sm card-hover">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <span class="badge bg-secondary mb-2" th:text="${l.categoria}">Categoria</span>
+                        <span class="badge"
+                              th:classappend="${l.disponible} ? 'bg-success' : 'bg-danger'"
+                              th:text="${l.disponible}
+                                       ? ${l.ejemplaresDisponibles} + ' disponibles'
+                                       : 'Sin ejemplares'">estado</span>
+                    </div>
+                    <h5 class="card-title brand-accent" th:text="${l.titulo}">Titulo</h5>
+                    <p class="text-muted small mb-1">
+                        <i class="bi bi-person me-1"></i><span th:text="${l.autor}">Autor</span>
+                    </p>
+                    <p class="text-muted small flex-grow-1">
+                        ISBN <span th:text="${l.isbn}">000</span> -
+                        <span th:text="${l.anioPublicacion}">2000</span>
+                    </p>
+                    <div class="btn-group btn-group-sm mt-2">
+                        <a class="btn btn-outline-primary" th:href="@{/libros/{id}(id=${l.id})}">Ver</a>
+                        <a class="btn btn-outline-warning" th:href="@{/libros/{id}/editar(id=${l.id})}"
+                           sec:authorize="hasRole('BIBLIOTECARIO')"><i class="bi bi-pencil"></i></a>
+                        <button type="button" class="btn btn-outline-danger"
+                                data-bs-toggle="modal" data-bs-target="#modalEliminar"
+                                th:data-id="${l.id}" th:data-titulo="${l.titulo}"
+                                sec:authorize="hasRole('BIBLIOTECARIO')"><i class="bi bi-trash"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-warning mt-4" th:if="${libros.isEmpty()}">
+        <i class="bi bi-exclamation-triangle me-2"></i> No hay libros para mostrar.
+    </div>
+</main>
+
+<footer th:replace="~{fragments/header :: footer}"></footer>
+
+<!-- Un solo modal para todas las cards: el JS de abajo le mete id y titulo -->
+<div class="modal fade" id="modalEliminar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Eliminar libro</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Eliminar <strong id="tituloLibroEliminar">...</strong> del catalogo?</p>
+                <p class="text-muted small mb-0">No se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="formEliminar" method="post" th:action="@{/libros/0/eliminar}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i> Si, eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('modalEliminar');
+    if (!modal) return;
+    modal.addEventListener('show.bs.modal', (event) => {
+      const boton = event.relatedTarget;
+      document.getElementById('tituloLibroEliminar').textContent = boton.getAttribute('data-titulo');
+      document.getElementById('formEliminar').action = '/libros/' + boton.getAttribute('data-id') + '/eliminar';
+    });
+  });
+</script>
+</body>
+</html>

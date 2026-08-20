@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${libro.id == null} ? 'Nuevo libro' : 'Editar libro'">Libro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: navbar}"></div>
+
+<main class="container my-4" style="max-width: 720px;">
+    <h1 class="mb-4">
+        <i class="bi bi-book me-2"></i>
+        <span th:text="${libro.id == null} ? 'Nuevo libro' : 'Editar libro'">Libro</span>
+    </h1>
+
+    <!-- Un solo form para crear y editar: el action cambia segun si hay id -->
+    <form method="post" th:object="${libro}"
+          th:action="${libro.id == null} ? @{/libros} : @{/libros/{id}(id=${libro.id})}">
+
+        <input type="hidden" th:field="*{id}">
+
+        <div class="mb-3">
+            <label class="form-label">Titulo</label>
+            <input type="text" class="form-control"
+                   th:classappend="${#fields.hasErrors('titulo')} ? 'is-invalid'"
+                   th:field="*{titulo}" placeholder="Ej: Clean Code">
+            <div class="invalid-feedback" th:errors="*{titulo}">Error</div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-7 mb-3">
+                <label class="form-label">Autor</label>
+                <input type="text" class="form-control"
+                       th:classappend="${#fields.hasErrors('autor')} ? 'is-invalid'"
+                       th:field="*{autor}">
+                <div class="invalid-feedback" th:errors="*{autor}">Error</div>
+            </div>
+            <div class="col-md-5 mb-3">
+                <label class="form-label">ISBN</label>
+                <input type="text" class="form-control"
+                       th:classappend="${#fields.hasErrors('isbn')} ? 'is-invalid'"
+                       th:field="*{isbn}" placeholder="978-...">
+                <div class="invalid-feedback" th:errors="*{isbn}">Error</div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-5 mb-3">
+                <label class="form-label">Categoria</label>
+                <input type="text" class="form-control"
+                       th:classappend="${#fields.hasErrors('categoria')} ? 'is-invalid'"
+                       th:field="*{categoria}" placeholder="Ej: Programacion">
+                <div class="invalid-feedback" th:errors="*{categoria}">Error</div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Anio</label>
+                <input type="number" class="form-control"
+                       th:classappend="${#fields.hasErrors('anioPublicacion')} ? 'is-invalid'"
+                       th:field="*{anioPublicacion}">
+                <div class="invalid-feedback" th:errors="*{anioPublicacion}">Error</div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Ejemplares totales</label>
+                <input type="number" min="1" class="form-control"
+                       th:classappend="${#fields.hasErrors('ejemplaresTotales')} ? 'is-invalid'"
+                       th:field="*{ejemplaresTotales}">
+                <div class="invalid-feedback" th:errors="*{ejemplaresTotales}">Error</div>
+            </div>
+        </div>
+
+        <!--
+          ejemplaresDisponibles NO se edita a mano: lo maneja PrestamoService
+          al prestar y devolver. Se muestra solo informativo al editar.
+        -->
+        <p class="text-muted small" th:if="${libro.id != null}">
+            Disponibles ahora: <strong th:text="${libro.ejemplaresDisponibles}">0</strong>
+            (lo ajusta el sistema con cada prestamo y devolucion).
+        </p>
+
+        <div class="d-flex justify-content-between mt-3">
+            <a class="btn btn-secondary" th:href="@{/libros}">
+                <i class="bi bi-arrow-left me-1"></i> Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle me-1"></i>
+                <span th:text="${libro.id == null} ? 'Crear' : 'Guardar cambios'">Guardar</span>
+            </button>
+        </div>
+    </form>
+</main>
+
+<footer th:replace="~{fragments/header :: footer}"></footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

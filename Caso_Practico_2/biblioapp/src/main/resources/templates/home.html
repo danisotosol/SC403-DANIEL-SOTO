@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio | BiblioApp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: navbar}"></div>
+
+<main class="container my-5">
+    <div class="card shadow border-0">
+        <div class="card-body p-5 text-center">
+            <h1 class="display-6 fw-bold brand-accent">
+                <i class="bi bi-book-half me-2"></i>BiblioApp
+            </h1>
+            <p class="lead text-muted">
+                Prestamo de libros con roles BIBLIOTECARIO / LECTOR.
+            </p>
+            <p>
+                Catalogo actual: <span class="badge bg-primary" th:text="${totalLibros}">0</span> libros.
+            </p>
+            <a class="btn btn-primary btn-lg mt-2" href="/libros">
+                <i class="bi bi-list-task me-1"></i> Ver catalogo
+            </a>
+            <a class="btn btn-outline-danger btn-lg mt-2" href="/prestamos/atrasados"
+               sec:authorize="hasRole('BIBLIOTECARIO')">
+                <i class="bi bi-alarm me-1"></i> Prestamos atrasados
+            </a>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/header :: footer}"></footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
